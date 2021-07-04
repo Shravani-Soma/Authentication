@@ -1,21 +1,19 @@
-from flask_bcrypt import Bcrypt
 from flask import Flask, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required
 from flask_wtf import FlaskForm
 from werkzeug.utils import redirect
-from wtforms import StringField,PasswordField,SubmitField
+from wtforms import StringField,PasswordField,SubmitField,IntegerField
 from wtforms.validators import InputRequired,Length
 import hashlib
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI']= 'mysql+pymysql://root:''@localhost/authentication'
+app.config['SQLALCHEMY_DATABASE_URI']= 'mysql+pymysql://root:''@localhost/infinosbox'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']= False
 app.config['SECRET_KEY'] = "shravanissshravanissshravaniss"
 
 db=SQLAlchemy(app)
-bcrypt=Bcrypt(app)
 
 login_manager= LoginManager()
 login_manager.init_app(app)
@@ -28,19 +26,16 @@ def load_user(user_id):
 
 
 class Useruthentication(db.Model,UserMixin):
-    __tablename__ = 'userauthentication'
-    id=db.Column(db.Integer, primary_key=True)
-    mailid=db.Column(db.String(33), nullable=False, unique=True)
-    userpassword=db.Column(db.String(80), nullable=False)
+    __tablename__ = 'user'
+    id=db.Column('userID',db.Integer,primary_key=True)
+    mailid=db.Column('mailID',db.String(40))
+    userpassword=db.Column('userPassword',db.String(33))
 
 
 class Board(db.Model,UserMixin):
     __tablename__ = 'board'
-    id=db.Column(db.Integer, primary_key=True)
-    boardid=db.Column(db.String(33), nullable=False, unique=True)
-    boardpassword=db.Column(db.String(40), nullable=False)
-
-db.create_all()
+    boardid=db.Column('boardID',db.Integer,primary_key=True)
+    boardpassword=db.Column('boardPassword',db.String(33))
 
 @app.route('/')
 def home():
@@ -53,7 +48,7 @@ class LoginForm(FlaskForm):
 
 
 class BoxLoginForm(FlaskForm):
-    boardid=StringField(validators=[InputRequired(),Length(min=4,max=20)], render_kw={"placeholder":"Board-Id"})
+    boardid=IntegerField(validators=[InputRequired()], render_kw={"placeholder":"Board-Id"})
     boardpassword=PasswordField(validators=[InputRequired(),Length(min=4,max=20)], render_kw={"placeholder":"Board-Password"})
     submit=SubmitField("Login")
 
@@ -81,7 +76,7 @@ def board():
         user=Board.query.filter_by(boardid=form.boardid.data).first()
         md5=hashlib.md5(form.boardpassword.data.encode())
         if user and user.boardpassword==md5.hexdigest():
-            return "You were successfully logged in"
+            return "Box successfully logged in"
     return render_template('board.html',form=form)
 
 
